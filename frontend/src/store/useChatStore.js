@@ -12,6 +12,10 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isTyping: false,
+  isRandomChatPending: false,
+  randomChatListenerInitialized: false,
+  randomChatCallInfo: null,
+  randomChatStatus: "idle",
 
   getUsers: async (showLoader = true) => {
     if (showLoader) set({ isUsersLoading: true });
@@ -44,10 +48,60 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get(`/messages/${userId}`);
       set({ messages: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error fetching messages");
     } finally {
       set({ isMessagesLoading: false });
     }
+  },
+
+  startRandomChat: async () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket) {
+      toast.error("Socket unavailable");
+      return;
+    }
+
+    if (get().isRandomChatPending) return;
+
+    socket.emit("joinRandomQueue");
+    set({ isRandomChatPending: true, randomChatStatus: "waiting", randomChatCallInfo: null });
+  },
+
+  leaveRandomChatQueue: () => {
+    const socket = useAuthStore.getState().socket;
+    if (socket) socket.emit("leaveRandomQueue");
+    set({ isRandomChatPending: false, randomChatStatus: "idle", randomChatCallInfo: null });
+  },
+
+  handleRandomChatMatched: (matchInfo) => {
+    set({
+      isRandomChatPending: false,
+      randomChatStatus: "matched",
+      randomChatCallInfo: matchInfo,
+    });
+  },
+
+  clearRandomChatCallInfo: () => {
+    set({ randomChatCallInfo: null, randomChatStatus: "idle" });
+  },
+
+  initializeRandomChatSocket: () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket || get().randomChatListenerInitialized) return;
+
+    socket.on("randomChatMatched", (matchInfo) => {
+      get().handleRandomChatMatched(matchInfo);
+    });
+
+    socket.on("randomChatQueued", () => {
+      set({ isRandomChatPending: true, randomChatStatus: "waiting" });
+    });
+
+    socket.on("randomChatPartnerLeft", ({ message }) => {
+      set({ isRandomChatPending: true, randomChatStatus: "waiting" });
+    });
+
+    set({ randomChatListenerInitialized: true });
   },
 
   sendMessage: async (messageData) => {

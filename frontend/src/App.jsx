@@ -11,7 +11,7 @@ import CallPage from "./pages/CallPage";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
-import { useChatStore } from "./store/useChatStore"; // 🔥 ADD THIS
+import { useChatStore } from "./store/useChatStore";
 import { useEffect } from "react";
 
 import { Loader } from "lucide-react";
@@ -23,7 +23,7 @@ const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
 
-  const { subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+  const { subscribeToMessages, unsubscribeFromMessages, initializeRandomChatSocket } = useChatStore();
   const { subscribeToCallEvents, unsubscribeFromCallEvents, isCallDeclined } = useCallStore();
 
   useEffect(() => {
@@ -37,6 +37,7 @@ const App = () => {
     const id = setTimeout(() => {
       subscribeToMessages();
       subscribeToCallEvents();
+      initializeRandomChatSocket();
     }, 0);
 
     return () => {
@@ -44,7 +45,7 @@ const App = () => {
       unsubscribeFromMessages();
       unsubscribeFromCallEvents();
     };
-  }, [authUser, subscribeToMessages, unsubscribeFromMessages]);
+  }, [authUser, subscribeToMessages, unsubscribeFromMessages, initializeRandomChatSocket]);
 
   if (isCheckingAuth && !authUser)
     return (
@@ -68,7 +69,7 @@ const App = () => {
         <Route path="/call/:id" element={authUser ? <CallPage /> : <Navigate to="/login" />}
         />
       </Routes>
-      
+
       <IncomingCall />
       {isCallDeclined && (
         <div className="fixed bottom-6 right-6 z-50 bg-base-100 border border-base-300 rounded-xl shadow-lg px-4 py-3 text-sm">

@@ -2,12 +2,23 @@ import { MessageSquare } from "lucide-react";
 import { Users, UserPlus, Shuffle } from "lucide-react";
 
 import AddFriendModal from "./AddFriendModal";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useChatStore } from "../store/useChatStore";
 
 const NoChatSelected = () => {
-
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+  const navigate = useNavigate();
+  const { startRandomChat, isRandomChatPending, randomChatCallInfo, clearRandomChatCallInfo } = useChatStore();
+
+  useEffect(() => {
+    if (!randomChatCallInfo) return;
+
+    navigate(
+      `/call/${randomChatCallInfo.callId}?isRandom=true&partnerId=${randomChatCallInfo.partnerId}`
+    );
+    clearRandomChatCallInfo();
+  }, [randomChatCallInfo, navigate, clearRandomChatCallInfo]);
 
   return (
     <div className="w-full flex flex-1 flex-col items-center justify-center p-16 bg-base-100/50">
@@ -27,12 +38,12 @@ const NoChatSelected = () => {
         {/* Welcome Text */}
         <h2 className="text-2xl font-bold">Welcome to ChatPie!</h2>
 
-        <div className="quickAccess mt-6 grid grid-cols-3 gap-4 max-w-md">
+        <div className="quickAccess mt-6 flex justify-center items-center gap-4 max-w-md">
 
-          <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-base-200 hover:bg-base-300 transition hover:translate-y-[-0.2rem] ">
+          {/* <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-base-200 hover:bg-base-300 transition hover:translate-y-[-0.2rem] ">
             <Users className="size-6" />
             <span className="text-xs text-center">New Group</span>
-          </button>
+          </button> */}
 
           <button
             onClick={() => setShowAddFriendModal(true)}
@@ -42,9 +53,15 @@ const NoChatSelected = () => {
             <span className="text-xs text-center">Add Friend</span>
           </button>
 
-          <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-base-200 hover:bg-base-300 transition hover:translate-y-[-0.2rem] ">
+          <button
+            onClick={startRandomChat}
+            disabled={isRandomChatPending}
+            className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-base-200 hover:bg-base-300 transition hover:translate-y-[-0.2rem] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Shuffle className="size-6" />
-            <span className="text-xs text-center">Connect n Play</span>
+            <span className="text-xs text-center">
+              {isRandomChatPending ? "Waiting..." : "Random Chat"}
+            </span>
           </button>
 
         </div>

@@ -8,7 +8,7 @@ import CallButton from "./CallButton";
 import { createPortal } from "react-dom";
 
 const ChatHeader = () => {
-  const { selectedUser, setSelectedUser } = useChatStore(); 
+  const { selectedUser, setSelectedUser } = useChatStore();
   const { onlineUsers, authUser } = useAuthStore();
   const { deleteFriend } = useFriendStore();
   const navigate = useNavigate();
