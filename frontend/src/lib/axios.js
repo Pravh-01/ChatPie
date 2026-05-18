@@ -1,6 +1,10 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.MODE === "development" ? "https://chatpie-5mbf.onrender.com/api" : "/api",
+  baseURL:
+    import.meta.env.MODE === "development"
+      ? "http://localhost:5001/api"
+      : "https://chatpie-5mbf.onrender.com/api",
+
   withCredentials: true,
 });
